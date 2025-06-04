@@ -23,7 +23,7 @@
       <button class="start-detection-btn" onclick="startDetection()">Start Detection</button>
     </div>
 
-   <!-- Face Management Section -->
+    <!-- Face Management Section -->
     <div class="face-management">
       <h3>Face Management</h3>
       <input type="text" id="username" placeholder="Enter New User Name" />
@@ -34,26 +34,21 @@
       </div>
     </div>
 
-
     <!-- Expandable Section -->
-      <div class="arrow-down" id="arrowDown">&#x25BC;</div>
-
-      <div class="register-extra" id="registerExtra">
-        <div class="extra-buttons">
-          <button class="extra-btn">Authorized Face</button>
-          <button class="extra-btn">Train Model Face</button>
-        </div>
+    <div class="arrow-down" id="arrowDown">&#x25BC;</div>
+    <div class="register-extra" id="registerExtra">
+      <div class="extra-buttons">
+        <button class="extra-btn">Authorized Face</button>
+        <button class="extra-btn">Train Model Face</button>
       </div>
-
+    </div>
 
     <!-- Logs info section -->
     <div class="log-info">
-      <p>Click below to view logs of detected <strong>INTRUDERS</strong>.</p>
-      <a href="#" class="view-logs-link" onclick="viewLogs()">View Logs</a>
+      <p>Below are the logs of detected <strong>INTRUDERS</strong>:</p>
+      <button id="viewLogsBtn" class="view-logs-link">View Logs</button>
       <div id="logs-output" style="margin-top: 1rem;"></div>
     </div>
-
-    
   </main>
 
   <!-- Footer -->
@@ -86,22 +81,54 @@
         .then(msg => alert(msg));
     }
 
-    function viewLogs() {
+    // Fetch and display logs on button click
+    document.getElementById('viewLogsBtn').addEventListener('click', function() {
       fetch('/logs')
         .then(res => res.json())
-        .then(logs => {
-          const output = logs.map(log => `<p>${log}</p>`).join('');
-          document.getElementById('logs-output').innerHTML = output;
+        .then(data => {
+          let html = '';
+
+          if (data.images && data.images.length > 0) {
+            html += '<h3>Intruder Images:</h3><ul class="logs-list">';
+            data.images.forEach(item => {
+              const [filename, timestamp] = item;
+              const displayName = filename.split('/').pop();
+              html += `<li>
+                <strong>${timestamp}</strong> - 
+                <a href="/view/images/${encodeURIComponent(filename)}" target="_blank">View</a> | 
+                <a href="/download/images/${encodeURIComponent(filename)}">Download</a> | 
+                <span>${displayName}</span>
+              </li>`;
+            });
+            html += '</ul>';
+          } else {
+            html += '<p>No intruder images found.</p>';
+          }
+
+          if (data.recordings && data.recordings.length > 0) {
+            html += '<h3>Screen Recordings:</h3><ul class="logs-list">';
+            data.recordings.forEach(item => {
+              const [filename, timestamp] = item;
+              const displayName = filename.split('/').pop();
+              html += `<li>
+                <strong>${timestamp}</strong> - 
+                <a href="/view/recordings/${encodeURIComponent(filename)}" target="_blank">View</a> | 
+                <a href="/download/recordings/${encodeURIComponent(filename)}">Download</a> | 
+                <span>${displayName}</span>
+              </li>`;
+            });
+            html += '</ul>';
+          } else {
+            html += '<p>No screen recordings found.</p>';
+          }
+
+          document.getElementById('logs-output').innerHTML = html;
+        })
+        .catch(err => {
+          document.getElementById('logs-output').innerHTML = '<p>Error loading logs.</p>';
+          console.error(err);
         });
-    }
-
-    function testEmail() {
-      alert("Testing Email Notification... (Hook to actual implementation)");
-    }
-
-    function testWhatsApp() {
-      alert("Testing WhatsApp Notification... (Hook to actual implementation)");
-    }
+    });
 
     // Toggle dropdown for extra register options
     document.addEventListener('DOMContentLoaded', () => {

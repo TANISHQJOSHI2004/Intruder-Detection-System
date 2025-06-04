@@ -42,10 +42,18 @@
 
     .input-field input {
       color: white;
+      background: transparent;
+    }
+
+    .input-field input:focus + label,
+    .input-field input:not(:placeholder-shown) + label {
+      transform: translateY(-20px) scale(0.8);
+      color: #aaa !important;
     }
 
     .input-field label {
       color: #aaa;
+      left: 0.75rem;
     }
 
     .btn {
@@ -116,11 +124,11 @@
         <h5>Password Login</h5>
         <form id="password-login-form">
           <div class="input-field">
-            <input id="username" type="text" required />
+            <input id="username" type="text" class="validate" required placeholder=" "/>
             <label for="username">Username</label>
           </div>
           <div class="input-field">
-            <input id="password" type="password" required />
+            <input id="password" type="password" class="validate" required placeholder=" "/>
             <label for="password">Password</label>
           </div>
           <button type="submit" class="btn blue">Login</button>
@@ -142,11 +150,11 @@
         <h5>Register</h5>
         <form id="register-form">
           <div class="input-field">
-            <input id="new-username" type="text" required />
+            <input id="new-username" type="text" class="validate" required placeholder=" "/>
             <label for="new-username">New Username</label>
           </div>
           <div class="input-field">
-            <input id="new-password" type="password" required />
+            <input id="new-password" type="password" class="validate" required placeholder=" "/>
             <label for="new-password">New Password</label>
           </div>
           <button type="submit" class="btn green">Register</button>

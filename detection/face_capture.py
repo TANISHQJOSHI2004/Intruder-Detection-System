@@ -1,21 +1,18 @@
 import cv2
 import os
+import numpy as np
+from datetime import datetime  # ✅ Import for timestamp
+
+# Consistent base directory with remote_logs_server.py
+BASE_DIR = r"C:\Users\TANISHQ JOSHI\Desktop\IDS\datasets"
 
 def capture_faces(user_name):
     if not user_name:
         print("Error: Username is required.")
         return
 
-    # Set base directory for datasets
-    base_dir = os.path.join(os.path.expanduser("~/Desktop"), "IDS")
-    dataset_path = os.path.join(base_dir, "datasets")
-
-    # Create dataset directory if it doesn't exist
-    os.makedirs(dataset_path, exist_ok=True)
-
-    user_folder = os.path.join(dataset_path, user_name)
-
-    # Create user folder if it doesn't exist
+    # User-specific folder
+    user_folder = os.path.join(BASE_DIR, "intruder_images", user_name)
     os.makedirs(user_folder, exist_ok=True)
 
     # Initialize webcam and face detector
@@ -34,22 +31,43 @@ def capture_faces(user_name):
 
     print(f"Capturing face images for {user_name}. Press 'q' to quit.")
     count = 0
+    target_images = 100  # Adjust as needed
 
-    while True:
+    while count < target_images:
         ret, frame = camera.read()
         if not ret:
             print("Error: Unable to capture frame from the camera.")
             break
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
 
         for (x, y, w, h) in faces:
             face = gray[y:y+h, x:x+w]
-            file_name = os.path.join(user_folder, f"{count}.jpg")
-            cv2.imwrite(file_name, face)
+            face_resized = cv2.resize(face, (150, 150))  # Standard size
+
+            # Save original face with timestamp and username
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            file_name = f"{user_name}_{timestamp}.jpg"
+            full_path = os.path.join(user_folder, file_name)
+            cv2.imwrite(full_path, face_resized)
+            print(f"Captured face {count}: {full_path}")
             count += 1
-            print(f"Captured face {count}: {file_name}")
+
+            # Data augmentation
+            augmented_faces = augment_image(face_resized)
+            for aug_face in augmented_faces:
+                aug_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                aug_file_name = f"{user_name}_{aug_timestamp}.jpg"
+                aug_full_path = os.path.join(user_folder, aug_file_name)
+                cv2.imwrite(aug_full_path, aug_face)
+                print(f"Captured augmented face {count}: {aug_full_path}")
+                count += 1
+
+            if count >= target_images:
+                break
+
+            # Draw rectangle on the frame
             cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
 
         cv2.imshow("Face Capture", frame)
@@ -61,3 +79,20 @@ def capture_faces(user_name):
     cv2.destroyAllWindows()
     print(f"Face capture complete. Total images: {count}")
     print(f"Images saved in: {user_folder}")
+
+def augment_image(face_img):
+    """Augments the given face image with small rotations and a horizontal flip."""
+    augmented = []
+    rows, cols = face_img.shape
+
+    # Slight rotations
+    for angle in [-10, 10]:
+        M = cv2.getRotationMatrix2D((cols/2, rows/2), angle, 1)
+        rotated = cv2.warpAffine(face_img, M, (cols, rows), borderMode=cv2.BORDER_REFLECT)
+        augmented.append(rotated)
+
+    # Horizontal flip
+    flipped = cv2.flip(face_img, 1)
+    augmented.append(flipped)
+
+    return augmented

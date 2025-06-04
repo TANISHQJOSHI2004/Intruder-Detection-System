@@ -4,17 +4,34 @@ import detection.face_capture as face_capture
 import detection.intruder_detection as intruder_detection
 import detection.remote_logs_server as remote_logs_server
 import detection.train_model as train_model
+import json
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 app.permanent_session_lifetime = timedelta(minutes=30)
 
-# In-memory user store (you can later use a database)
-registered_users = {
-    "admin": "1234"
-}
+# -------------------- USER DATA HANDLING --------------------
 
-# Redirect root to login
+USERS_FILE = 'users.json'
+
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        # Create admin user if file doesn’t exist
+        with open(USERS_FILE, 'w') as f:
+            json.dump({"admin": "1234"}, f, indent=4)
+    with open(USERS_FILE, 'r') as f:
+        return json.load(f)
+
+def save_users(users):
+    with open(USERS_FILE, 'w') as f:
+        json.dump(users, f, indent=4)
+
+# Load users at startup
+registered_users = load_users()
+
+# -------------------- ROUTES --------------------
+
 @app.route('/')
 def home():
     return redirect(url_for('login'))
@@ -22,8 +39,6 @@ def home():
 @app.route('/login')
 def login():
     return render_template('login.html')
-
-# -------------------- AUTH ROUTES --------------------
 
 @app.route('/register-user', methods=['POST'])
 def register_user():
@@ -38,6 +53,7 @@ def register_user():
         return jsonify(status="fail", message="Username already exists.")
     
     registered_users[username] = password
+    save_users(registered_users)
     return jsonify(status="success", message="User registered successfully.")
 
 @app.route('/password-login', methods=['POST'])
@@ -64,8 +80,6 @@ def face_login():
     else:
         return jsonify(status="fail", message="Face not recognized")
 
-# -------------------- MAIN ROUTES --------------------
-
 @app.route('/index')
 def index():
     if 'user' in session:
@@ -78,8 +92,7 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('login'))
 
-# -------------------- BACKEND FUNCTIONALITY --------------------
-
+# Backend features
 @app.route('/register-face')
 def register_face():
     username = request.args.get('username')
@@ -98,12 +111,21 @@ def start_detection():
     intruder_detection.detect_intruder()
     return "Detection started."
 
+# New: JSON API endpoint to return logs data for frontend dynamic loading
 @app.route('/logs')
-def view_logs():
-    logs = remote_logs_server.read_log_entries()
-    return jsonify(logs)
+def logs():
+    images = remote_logs_server.get_sorted_files_with_timestamps(remote_logs_server.INTRUDER_IMAGES_DIR)
+    recordings = remote_logs_server.get_sorted_files_with_timestamps(remote_logs_server.SCREEN_RECORDINGS_DIR)
+
+    images_json = [(fn, ts.strftime("%Y-%m-%d %H:%M:%S")) for fn, ts in images]
+    recordings_json = [(fn, ts.strftime("%Y-%m-%d %H:%M:%S")) for fn, ts in recordings]
+
+    return jsonify({
+        "images": images_json,
+        "recordings": recordings_json
+    })
 
 # -------------------- MAIN --------------------
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

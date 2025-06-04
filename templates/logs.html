@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Logs - Intruder Detection System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background: #1e1e1e;
+            color: white;
+            padding: 20px;
+        }
+        .image-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            overflow: hidden;
+            padding: 10px;
+        }
+        .card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .card p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h4>Logs - Captured Images</h4>
+    <div class="image-grid">
+        {% for log in logs %}
+        <div class="card">
+            <img src="{{ url_for('static', filename=log.path) }}" alt="Captured Face">
+            <p>User: {{ log.user }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

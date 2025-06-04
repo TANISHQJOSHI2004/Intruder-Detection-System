@@ -9,6 +9,10 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 from twilio.rest import Client
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Base directories
 BASE_DIR = os.path.join(os.path.expanduser("~/Desktop"), "IDS")
@@ -37,21 +41,26 @@ if not os.path.exists(HAARCASCADE_PATH):
 face_cascade = cv2.CascadeClassifier(HAARCASCADE_PATH)
 
 # Email Configuration
-EMAIL_SENDER = os.getenv("EMAIL_SENDER", "akshatkansara07@gmail.com")
-EMAIL_RECEIVER = os.getenv("EMAIL_RECEIVER", "arnavkansara3@gmail.com")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "micibwqzsngiudek")
+EMAIL_SENDER = os.getenv("EMAIL_SENDER")
+EMAIL_RECEIVER = os.getenv("EMAIL_RECEIVER")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
-# Twilio WhatsApp Configuration
-ACCOUNT_SID = "ACf8fc70a665f1a5eb8c7ceb9d2ec44b3d"
-AUTH_TOKEN = "94271ba3ab62001cf8f596a20bbd727b"
-TWILIO_WHATSAPP_NUMBER = "whatsapp:+14155238886"
-RECIPIENT_WHATSAPP_NUMBER = "whatsapp:+919638800270"
+# Twilio Configuration
+ACCOUNT_SID = os.getenv("TWILIO_SID")
+AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
+RECIPIENT_WHATSAPP_NUMBER = os.getenv("RECIPIENT_WHATSAPP_NUMBER")
+IMAGE_HOST_URL = os.getenv("IMAGE_HOST_URL", "https://your_public_hosting_url.com/")
 
-# Cooldown configuration
+# Cooldown
 last_alert_time = {}
 ALERT_COOLDOWN = 30  # seconds
 
 def send_email(subject, body, attachment_path=None):
+    if not all([EMAIL_SENDER, EMAIL_RECEIVER, EMAIL_PASSWORD]):
+        print("❌ Email credentials are not configured properly.")
+        return
+
     msg = MIMEMultipart()
     msg["From"] = EMAIL_SENDER
     msg["To"] = EMAIL_RECEIVER
@@ -76,14 +85,18 @@ def send_email(subject, body, attachment_path=None):
         print(f"❌ Failed to send email: {e}")
 
 def send_whatsapp_message(image_path, message_body):
+    if not all([ACCOUNT_SID, AUTH_TOKEN, TWILIO_WHATSAPP_NUMBER, RECIPIENT_WHATSAPP_NUMBER]):
+        print("❌ Twilio credentials are not configured properly.")
+        return
+
     client = Client(ACCOUNT_SID, AUTH_TOKEN)
-    image_host_url = "https://your_public_hosting_url.com/" + os.path.basename(image_path)  # TODO: Replace with your actual URL
+    image_url = IMAGE_HOST_URL + os.path.basename(image_path)
     try:
         message = client.messages.create(
             body=message_body,
             from_=TWILIO_WHATSAPP_NUMBER,
             to=RECIPIENT_WHATSAPP_NUMBER,
-            media_url=[image_host_url]
+            media_url=[image_url]
         )
         print(f"✅ WhatsApp message sent: {message.sid}")
     except Exception as e:
@@ -91,126 +104,84 @@ def send_whatsapp_message(image_path, message_body):
 
 def save_intruder_image(frame):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    intruder_image_path = os.path.join(INTRUDER_IMAGES_DIR, f"intruder_{timestamp}.jpg")
-    cv2.imwrite(intruder_image_path, frame)
-    return intruder_image_path
+    image_path = os.path.join(INTRUDER_IMAGES_DIR, f"intruder_{timestamp}.jpg")
+    cv2.imwrite(image_path, frame)
+    return image_path
 
 def handle_intruder(face_id, frame):
     global last_alert_time
-    current_time = time.time()
+    now = time.time()
 
-    if face_id in last_alert_time and current_time - last_alert_time[face_id] < ALERT_COOLDOWN:
+    if face_id in last_alert_time and now - last_alert_time[face_id] < ALERT_COOLDOWN:
         print(f"⚠️ Cooldown active for face {face_id}. Skipping alert.")
         return
 
-    last_alert_time[face_id] = current_time
+    last_alert_time[face_id] = now
     print(f"🚨 Intruder detected! Face ID: {face_id}")
-    intruder_image_path = save_intruder_image(frame)
 
+    intruder_image = save_intruder_image(frame)
     send_email(
         subject=f"Intruder Alert: Face ID {face_id}",
-        body="An unauthorized person has been detected. See the attached image for details.",
-        attachment_path=intruder_image_path
+        body="An unauthorized person has been detected.",
+        attachment_path=intruder_image
     )
-
     send_whatsapp_message(
-        image_path=intruder_image_path,
-        message_body="⚠️ Alert! An intruder has been detected. See the attached image."
+        image_path=intruder_image,
+        message_body="⚠️ Alert! An intruder has been detected."
     )
 
 def process_frame(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
-    print(f"👀 Detected {len(faces)} face(s) in the frame.")
-
     for face_id, (x, y, w, h) in enumerate(faces):
         face = gray[y:y+h, x:x+w]
-
         try:
             label, confidence = recognizer.predict(face)
-            print(f"🧠 Prediction — Label: {label}, Confidence: {confidence:.2f}")
         except:
-            print("⚠️ Prediction failed. Skipping face.")
             continue
 
-        if confidence < 80:  # Relaxed threshold
+        if confidence < 80:
             user_name = label_dict.get(str(label), "Unknown")
-            print(f"✅ Recognized: {user_name} (Face ID: {face_id}, Confidence: {confidence:.2f})")
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
             cv2.putText(frame, f"{user_name} ({confidence:.2f})", (x, y-10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
         else:
-            print(f"🚨 Unrecognized face detected (Face ID: {face_id})")
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 0, 255), 2)
             cv2.putText(frame, "Intruder", (x, y-10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
             handle_intruder(face_id, frame)
-
     return frame
 
 def detect_intruder():
     cap = cv2.VideoCapture(0)
-
     if not cap.isOpened():
-        print("❌ Failed to open webcam.")
+        print("❌ Webcam not available.")
         return
 
-    print("📹 Starting intruder detection... Press 'q' to quit.")
+    print("📹 Intruder detection running. Press 'q' to quit.")
     while True:
         ret, frame = cap.read()
         if not ret:
-            print("❌ Failed to read frame from webcam.")
             break
 
         processed_frame = process_frame(frame)
         cv2.imshow("Intruder Detection", processed_frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
-            print("🛑 Stopping detection...")
             break
 
     cap.release()
     cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-    print("✅ Module intruder_detection loaded successfully.")
-
-import cv2
-import os
-import json
-
-BASE_DIR = os.path.join(os.path.expanduser("~/Desktop"), "IDS")
-MODEL_PATH = os.path.join(BASE_DIR, "face_model.yml")
-LABEL_MAPPING_PATH = os.path.join(BASE_DIR, "label_mapping.json")
-
 def recognize_face():
-    """
-    Recognizes a face from the webcam using the trained model.
-    Returns 'success' if recognized, else 'fail'.
-    """
-    if not os.path.exists(MODEL_PATH) or not os.path.exists(LABEL_MAPPING_PATH):
-        print("Model or label file not found.")
-        return "fail"
-
-    recognizer = cv2.face.LBPHFaceRecognizer_create()
-    recognizer.read(MODEL_PATH)
-
-    with open(LABEL_MAPPING_PATH, "r") as f:
-        label_dict = json.load(f)
-
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     cam = cv2.VideoCapture(0)
-
     if not cam.isOpened():
         print("❌ Cannot access webcam.")
         return "fail"
 
-    print("🔍 Looking for a known face. Please look at the camera...")
-
     recognized = False
     attempts = 0
-
     while attempts < 50:
         ret, frame = cam.read()
         if not ret:
@@ -218,26 +189,24 @@ def recognize_face():
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-
         for (x, y, w, h) in faces:
             face = gray[y:y+h, x:x+w]
             try:
                 label, confidence = recognizer.predict(face)
+                if confidence < 50:
+                    user_name = label_dict.get(str(label), "Unknown")
+                    print(f"✅ Recognized as {user_name} (Confidence: {confidence:.2f})")
+                    recognized = True
+                    break
             except:
                 continue
-
-            if confidence < 80:
-                user_name = label_dict.get(str(label), "Unknown")
-                print(f"✅ Recognized as {user_name} (Confidence: {confidence:.2f})")
-                recognized = True
-                break
-
         if recognized:
             break
-
         attempts += 1
 
     cam.release()
     cv2.destroyAllWindows()
-
     return "success" if recognized else "fail"
+
+if __name__ == "__main__":
+    print("✅ Module loaded.")
