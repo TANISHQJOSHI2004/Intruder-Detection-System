@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Intruder Detection</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: black;
+      font-family: inherit;
+      background: #1e1e1e;
+    }
+
+    .container {
+      max-width: 1000px;
+      text-align: center;
+    }
+
+    .login-section {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .glass-effect {
+      flex: 1;
+      padding: 30px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      color: #ccc;
+      min-width: 280px;
+    }
+
+    .input-field input {
+      color: white;
+    }
+
+    .input-field label {
+      color: #aaa;
+    }
+
+    .btn {
+      width: 100%;
+      border-radius: 5px;
+    }
+
+    .face-recognition {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: green;
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease-in-out;
+      width: 200px;
+      margin: 30px auto 0 auto;
+    }
+
+    .face-recognition:hover {
+      background: darkgreen;
+    }
+
+    .face-text {
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    .face-recognition:hover .face-text {
+      opacity: 0;
+    }
+
+    .arrow {
+      margin-left: 10px;
+      transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+      display: inline-block;
+    }
+
+    .face-recognition:hover .arrow {
+      transform: translateX(30px);
+      font-size: 28px;
+    }
+
+    #face-login-status {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: red;
+    }
+
+    h5 {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h3 class="center-align white-text">Login to Intruder Detection System</h3>
+    
+    <div class="login-section">
+      <!-- Password Login -->
+      <div class="glass-effect">
+        <h5>Password Login</h5>
+        <form id="password-login-form">
+          <div class="input-field">
+            <input id="username" type="text" required />
+            <label for="username">Username</label>
+          </div>
+          <div class="input-field">
+            <input id="password" type="password" required />
+            <label for="password">Password</label>
+          </div>
+          <button type="submit" class="btn blue">Login</button>
+        </form>
+      </div>
+
+      <!-- Face Recognition Login -->
+      <div class="glass-effect">
+        <h5>Face Recognition</h5>
+        <div id="face-login-btn" class="face-recognition">
+          <span class="face-text">Start</span>
+          <i class="material-icons arrow">arrow_forward</i>
+        </div>
+        <p id="face-login-status"></p>
+      </div>
+
+      <!-- Registration -->
+      <div class="glass-effect">
+        <h5>Register</h5>
+        <form id="register-form">
+          <div class="input-field">
+            <input id="new-username" type="text" required />
+            <label for="new-username">New Username</label>
+          </div>
+          <div class="input-field">
+            <input id="new-password" type="password" required />
+            <label for="new-password">New Password</label>
+          </div>
+          <button type="submit" class="btn green">Register</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Password Login
+    document.getElementById("password-login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      const response = await fetch("/password-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json();
+
+      if (data.status === "success") {
+        window.location.href = "/index";
+      } else {
+        alert(data.message);
+      }
+    });
+
+    // Face Login
+    document.getElementById("face-login-btn").addEventListener("click", async () => {
+      const response = await fetch("/face-login", { method: "POST" });
+      const data = await response.json();
+
+      if (data.status === "success") {
+        window.location.href = "/index";
+      } else {
+        document.getElementById("face-login-status").innerText = data.message;
+      }
+    });
+
+    // Registration
+    document.getElementById("register-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("new-username").value;
+      const password = document.getElementById("new-password").value;
+
+      const response = await fetch("/register-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+      alert(data.message);
+    });
+  </script>
+</body>
+</html>
