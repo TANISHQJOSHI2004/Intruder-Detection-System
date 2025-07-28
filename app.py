@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_from_directory, abort
 from datetime import timedelta
-import detection.face_capture as face_capture
-import detection.intruder_detection as intruder_detection
-import detection.remote_logs_server as remote_logs_server
-import detection.train_model as train_model
+import face_capture
+import intruder_detection
+import remote_logs_server
+import train_model
 import json
 import os
 
@@ -30,10 +30,23 @@ def save_users(users):
 # Load users at startup
 registered_users = load_users()
 
+# -------------------- AUTH HELPERS --------------------
+
+def login_required(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 # -------------------- ROUTES --------------------
 
 @app.route('/')
 def home():
+    if 'user' in session:
+        return redirect(url_for('index'))
     return redirect(url_for('login'))
 
 @app.route('/login')
@@ -71,29 +84,35 @@ def password_login():
 
 @app.route('/face-login', methods=['POST'])
 def face_login():
-    # Replace with actual face recognition
-    result = intruder_detection.recognize_face()
-    if result == "success":
+    recognized_user = intruder_detection.recognize_face()
+    if recognized_user != "fail":
         session.permanent = True
-        session['user'] = 'face_user'
-        return jsonify(status="success")
+        session['user'] = recognized_user
+        return jsonify(status="success", username=recognized_user)
     else:
         return jsonify(status="fail", message="Face not recognized")
 
+
 @app.route('/index')
+@login_required
 def index():
-    if 'user' in session:
-        return render_template('index.html')
-    else:
-        return redirect(url_for('login'))
+    return render_template('index.html')
 
 @app.route('/logout')
 def logout():
     session.pop('user', None)
     return redirect(url_for('login'))
 
-# Backend features
+@app.route('/logs-page')
+@login_required
+def logs_page():
+    return render_template('logs.html')
+
+
+# Backend features with login protection
+
 @app.route('/register-face')
+@login_required
 def register_face():
     username = request.args.get('username')
     if not username:
@@ -102,17 +121,21 @@ def register_face():
     return f"Face capture completed for {username}."
 
 @app.route('/train-model')
+@login_required
 def train_face_model():
     train_model.train_model()
     return "Training completed."
 
 @app.route('/start-detection')
+@login_required
 def start_detection():
     intruder_detection.detect_intruder()
     return "Detection started."
 
-# New: JSON API endpoint to return logs data for frontend dynamic loading
+# Logs API with login protection
+
 @app.route('/logs')
+@login_required
 def logs():
     images = remote_logs_server.get_sorted_files_with_timestamps(remote_logs_server.INTRUDER_IMAGES_DIR)
     recordings = remote_logs_server.get_sorted_files_with_timestamps(remote_logs_server.SCREEN_RECORDINGS_DIR)
@@ -124,6 +147,42 @@ def logs():
         "images": images_json,
         "recordings": recordings_json
     })
+
+# Serve intruder images for view and download
+
+@app.route('/view/images/<path:filename>')
+@login_required
+def view_image(filename):
+    dir_path = remote_logs_server.INTRUDER_IMAGES_DIR
+    if not os.path.isfile(os.path.join(dir_path, filename)):
+        abort(404)
+    return send_from_directory(dir_path, filename)
+
+@app.route('/download/images/<path:filename>')
+@login_required
+def download_image(filename):
+    dir_path = remote_logs_server.INTRUDER_IMAGES_DIR
+    if not os.path.isfile(os.path.join(dir_path, filename)):
+        abort(404)
+    return send_from_directory(dir_path, filename, as_attachment=True)
+
+# Serve screen recordings for view and download
+
+@app.route('/view/recordings/<path:filename>')
+@login_required
+def view_recording(filename):
+    dir_path = remote_logs_server.SCREEN_RECORDINGS_DIR
+    if not os.path.isfile(os.path.join(dir_path, filename)):
+        abort(404)
+    return send_from_directory(dir_path, filename)
+
+@app.route('/download/recordings/<path:filename>')
+@login_required
+def download_recording(filename):
+    dir_path = remote_logs_server.SCREEN_RECORDINGS_DIR
+    if not os.path.isfile(os.path.join(dir_path, filename)):
+        abort(404)
+    return send_from_directory(dir_path, filename, as_attachment=True)
 
 # -------------------- MAIN --------------------
 

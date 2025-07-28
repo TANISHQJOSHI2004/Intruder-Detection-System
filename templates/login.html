@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Intruder Detection</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: black;
+      font-family: inherit;
+      background: #1e1e1e;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 960px;
+      text-align: center;
+      padding: 0 10px;
+    }
+
+    .login-section {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .glass-effect {
+    width: 300px;
+    padding: 0px 0px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    color: #ccc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+    min-height: 330px;
+}
+
+    .input-field input {
+      color: white;
+      background: transparent;
+      font-size: 0.9rem;
+    }
+
+    .input-field label {
+      color: #aaa;
+      font-size: 0.85rem;
+      left: 0.6rem;
+      top: 0.8rem;
+      pointer-events: none;
+      position: absolute;
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .input-field input:focus + label,
+    .input-field input:not(:placeholder-shown) + label {
+      transform: translateY(-18px) scale(0.75);
+      color: #aaa !important;
+    }
+
+    .btn {
+      width: 100%;
+      border-radius: 5px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .face-recognition {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #4caf50;
+      color: white;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease-in-out;
+      width: 170px;
+      margin: 25px auto 0 auto;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .face-recognition:hover {
+      background: #388e3c;
+    }
+
+    .face-text {
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    .face-recognition:hover .face-text {
+      opacity: 0;
+    }
+
+    .arrow {
+      margin-left: 8px;
+      transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+      display: inline-block;
+      font-size: 20px;
+    }
+
+    .face-recognition:hover .arrow {
+      transform: translateX(25px);
+      font-size: 24px;
+    }
+
+    #face-login-status {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: 600;
+      min-height: 22px;
+      font-size: 0.95rem;
+    }
+
+    #face-login-status.success {
+      color: #4caf50;
+    }
+
+    #face-login-status.error {
+      color: #f44336;
+    }
+
+    h3, h5 {
+      color: #fff;
+      width: 100%;
+      text-align: center;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    /* Smaller face video container and video styling */
+    #face-video-container {
+      margin: 15px auto 0 auto;
+      width: 200px;    /* smaller width */
+      height: 150px;   /* smaller height */
+      border-radius: 12px;
+      overflow: hidden;
+      background: black;
+      box-shadow: 0 0 10px #4caf50;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      flex-shrink: 0;
+    }
+
+    #face-video-container.active {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    #face-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h3 class="center-align white-text">Login to Intruder Detection System</h3>
+    
+    <div class="login-section">
+      <!-- Password Login -->
+      <div class="glass-effect">
+        <h5>Password Login</h5>
+        <form id="password-login-form">
+          <div class="input-field" style="position: relative">
+            <input id="username" type="text" class="validate" required placeholder=" " autocomplete="off"/>
+            <label for="username">Username</label>
+          </div>
+          <div class="input-field" style="position: relative; margin-bottom: 40px;">
+            <input id="password" type="password" class="validate" required placeholder=" " autocomplete="off"/>
+            <label for="password">Password</label>
+          </div>
+          <button type="submit" class="btn blue">Login</button>
+        </form>
+      </div>
+
+      <!-- Face Recognition Login -->
+      <div class="glass-effect">
+        <h5>Face Recognition</h5>
+
+        <!-- Face Recognition Video Window -->
+        <div id="face-video-container">
+          <video id="face-video" autoplay muted playsinline></video>
+        </div>
+
+        <div id="face-login-btn" class="face-recognition" role="button" tabindex="0">
+          <span class="face-text">Start</span>
+          <i class="material-icons arrow">arrow_forward</i>
+        </div>
+        <p id="face-login-status"></p>
+      </div>
+
+      <!-- Registration -->
+      <div class="glass-effect">
+        <h5>Register</h5>
+        <form id="register-form">
+          <div class="input-field" style="position: relative;">
+            <input id="new-username" type="text" class="validate" required placeholder=" " autocomplete="off"/>
+            <label for="new-username">New Username</label>
+          </div>
+          <div class="input-field" style="position: relative; margin-bottom: 40px;">
+            <input id="new-password" type="password" class="validate" required placeholder=" " autocomplete="off"/>
+            <label for="new-password">New Password</label>
+          </div>
+          <button type="submit" class="btn green">Register</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Password Login
+    document.getElementById("password-login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      const response = await fetch("/password-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json();
+
+      if (data.status === "success") {
+        window.location.href = "/index";
+      } else {
+        alert(data.message);
+      }
+    });
+
+    // Face Recognition Login
+    let stream = null;
+    const video = document.getElementById('face-video');
+    const videoContainer = document.getElementById('face-video-container');
+    const btn = document.getElementById('face-login-btn');
+    const faceText = btn.querySelector('.face-text');
+    const faceIcon = btn.querySelector('.arrow');
+    const status = document.getElementById('face-login-status');
+
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        videoContainer.classList.add('active');
+        faceText.textContent = 'Stop';
+        faceIcon.textContent = 'stop';
+        status.textContent = '';
+        status.className = '';
+      } catch (err) {
+        console.error('Error accessing webcam:', err);
+        status.className = 'error';
+        status.textContent = 'Cannot access webcam';
+      }
+    }
+
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+        video.srcObject = null;
+      }
+      videoContainer.classList.remove('active');
+      faceText.textContent = 'Start';
+      faceIcon.textContent = 'arrow_forward';
+    }
+
+    btn.addEventListener('click', async () => {
+      if (stream) {
+        // If camera running, stop it immediately
+        stopCamera();
+        status.textContent = '';
+        status.className = '';
+        return;
+      }
+
+      await startCamera();
+
+      status.className = '';
+      status.textContent = 'Verifying...';
+
+      try {
+        const response = await fetch("/face-login", { method: "POST" });
+        const data = await response.json();
+
+        if (data.status === "success") {
+          status.classList.add("success");
+          status.textContent = "Face recognized. Logging in...";
+          stopCamera(); // stop camera and hide video immediately
+          setTimeout(() => window.location.href = "/index", 1500);
+        } else {
+          status.classList.add("error");
+          status.textContent = data.message;
+          stopCamera(); // stop camera on failure too
+        }
+      } catch (error) {
+        status.classList.add("error");
+        status.textContent = "Face login failed. Try again.";
+        console.error(error);
+        stopCamera(); // stop camera on error as well
+      }
+    });
+
+    // Registration
+    document.getElementById("register-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("new-username").value;
+      const password = document.getElementById("new-password").value;
+
+      const response = await fetch("/register-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+      alert(data.message);
+    });
+  </script>
+</body>
+</html>
