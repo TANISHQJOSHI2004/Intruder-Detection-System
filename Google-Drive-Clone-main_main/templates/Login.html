@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Google Drive Clone</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: 'Roboto', sans-serif;
+      background: url('static/1.png') center/cover no-repeat;
+      background-attachment: fixed;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      background: transparent;
+      padding: 30px;
+      margin-left: 282px;
+      border-radius: 15px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      box-sizing: border-box;
+    }
+
+    h3 {
+      text-align: center;
+      color: rgb(175, 79, 79);
+      margin-bottom: 30px;
+    }
+
+    .boxes-wrapper {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .glass-effect {
+      flex: 1;
+      padding: 20px;
+      border-radius: 15px;
+      background: #ffffff;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      color: #333;
+      box-sizing: border-box;
+      min-width: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .input-field input {
+      width: 100%;
+      padding: 16px 4px 8px 4px; /* increased top padding */
+      font-size: 1rem;
+      border: none;
+      border-bottom: 2px solid #ccc;
+      background: rgba(255, 255, 255, 0.85);
+      color: #333;
+      outline: none;
+      transition: border-color 0.3s ease;
+      line-height: 1.3; /* added line-height */
+      box-sizing: border-box;
+    }
+
+    .input-field input:focus,
+    .input-field input:hover {
+      border-bottom: 2px solid #4caf50;
+    }
+
+    .input-field label {
+      color: #999;
+      left: 0.75rem;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      position: absolute;
+      top: 16px;
+      font-size: 1rem;
+    }
+
+    .input-field input:focus + label,
+    .input-field input:not(:placeholder-shown) + label {
+      top: -10px;
+      font-size: 0.75rem;
+      color: #4caf50;
+    }
+
+    h5 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    .svg-btn {
+      background-color: #4caf50;
+      border: none;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      cursor: pointer;
+      margin-top: auto;
+      padding: 0;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .svg-btn svg {
+      width: 24px;
+      height: 24px;
+      color: white;
+    }
+
+    .svg-btn:hover {
+      background-color: #43a047;
+    }
+
+    .svg-btn.grey {
+      background-color: #9e9e9e;
+    }
+
+    .svg-btn.grey:hover {
+      background-color: #757575;
+    }
+
+    #message-box {
+      display: none;
+      padding: 12px 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      font-weight: 500;
+      text-align: center;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    #face-login-video {
+      display: none;
+      width: 100%;
+      max-width: 240px;
+      margin: 10px 0 20px 0;
+      border: 2px solid #2196f3;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    @media screen and (max-width: 900px) {
+      .boxes-wrapper {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h3>Login to Google Drive Clone</h3>
+    <div id="message-box" role="alert"></div>
+    <div class="boxes-wrapper">
+      <!-- Password Login -->
+      <div class="glass-effect">
+        <h5>Password Login</h5>
+        <form id="password-login-form">
+          <div class="input-field" style="position: relative;">
+            <input id="username" type="text" class="validate" placeholder=" " required />
+            <label for="username">Username</label>
+          </div>
+          <div class="input-field" style="position: relative;">
+            <input id="password" type="password" class="validate" placeholder=" " required />
+            <label for="password">Password</label>
+          </div>
+          <button type="submit" class="svg-btn" aria-label="Login">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+            </svg>
+          </button>
+        </form>
+      </div>
+      <!-- Face Recognition Login -->
+      <div class="glass-effect">
+        <h5>Face Recognition Login</h5>
+        <video id="face-login-video" autoplay muted playsinline></video>
+        <button id="face-login-btn" class="svg-btn" aria-label="Face Recognition Login">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c1.657 0 3-1.567 3-3.5S13.657 4 12 4 9 5.567 9 7.5 10.343 11 12 11zM12 11v4m0 0v3m0-3h3m-3 0H9m3 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+          </svg>
+        </button>
+      </div>
+      <!-- Registration -->
+      <div class="glass-effect">
+        <h5>Register</h5>
+        <form id="register-form">
+          <div class="input-field" style="position: relative;">
+            <input id="new-username" type="text" class="validate" placeholder=" " required />
+            <label for="new-username">New Username</label>
+          </div>
+          <div class="input-field" style="position: relative;">
+            <input id="new-password" type="password" class="validate" placeholder=" " required />
+            <label for="new-password">New Password</label>
+          </div>
+          <button type="submit" class="svg-btn grey" aria-label="Register">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061A1.125 1.125 0 0 1 3 16.811V8.69ZM12.75 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061a1.125 1.125 0 0 1-1.683-.977V8.69Z" />
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showMessage(message, type = "error") {
+      const box = document.getElementById("message-box");
+      box.style.display = "block";
+      box.textContent = message;
+      box.style.backgroundColor = type === "success" ? "#d4edda" : "#f8d7da";
+      box.style.color = type === "success" ? "#155724" : "#721c24";
+      box.style.border = type === "success" ? "1px solid #c3e6cb" : "1px solid #f5c6cb";
+      setTimeout(() => { box.style.display = "none"; box.textContent = ""; }, 4000);
+    }
+
+    document.getElementById("password-login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const response = await fetch("/password-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json();
+      if (data.status === "success") {
+        window.location.href = "/index";
+      } else {
+        showMessage(data.message, "error");
+      }
+    });
+
+    const faceLoginBtn = document.getElementById("face-login-btn");
+    faceLoginBtn.addEventListener("click", async () => {
+      faceLoginBtn.disabled = true;
+      const video = document.getElementById("face-login-video");
+      try {
+        video.style.display = "block";
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+
+        showMessage("Starting face recognition, please wait...", "success");
+        const response = await fetch("/face-login", { method: "POST" });
+        const data = await response.json();
+        if (data.status === "success") {
+          showMessage("Face recognized! Logging in...", "success");
+          setTimeout(() => window.location.href = "/index", 1500);
+        } else {
+          showMessage(data.message || "Face recognition failed", "error");
+        }
+        stream.getTracks().forEach(track => track.stop());
+        video.style.display = "none";
+      } catch (err) {
+        showMessage("Unable to access webcam: " + err.message, "error");
+        video.style.display = "none";
+      } finally {
+        faceLoginBtn.disabled = false;
+      }
+    });
+
+    document.getElementById("register-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("new-username").value;
+      const password = document.getElementById("new-password").value;
+      const response = await fetch("/register-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json();
+      showMessage(data.message, data.status === "success" ? "success" : "error");
+      if (data.status === "success") {
+        document.getElementById("new-username").value = "";
+        document.getElementById("new-password").value = "";
+      }
+    });
+  </script>
+</body>
+</html>

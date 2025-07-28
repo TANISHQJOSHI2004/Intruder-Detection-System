@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AK's Drive</title>
+
+<!-- Materialize CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link rel="stylesheet" href="static/style.css"/>
+
+<style>
+  .logout-btn {
+    margin-top: 0;
+    padding: 10px 20px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    font-size: 16px;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 6px rgba(244, 67, 54, 0.4);
+  }
+  .logout-btn:hover {
+    background-color: #d32f2f;
+    box-shadow: 0 6px 10px rgba(211, 47, 47, 0.6);
+  }
+  button.red-btn, button.blue-btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: background-color 0.3s ease;
+    font-size: 16px;
+  }
+  button.red-btn {
+    background-color: #f44336;
+    color: white;
+    box-shadow: 0 4px 6px rgba(244, 67, 54, 0.4);
+  }
+  button.red-btn:hover {
+    background-color: #d32f2f;
+    box-shadow: 0 6px 10px rgba(211, 47, 47, 0.6);
+  }
+  button.blue-btn {
+    background-color: #2196f3;
+    color: white;
+    box-shadow: 0 4px 6px rgba(33, 150, 243, 0.4);
+  }
+  button.blue-btn:hover {
+    background-color: #1976d2;
+    box-shadow: 0 6px 10px rgba(25, 118, 210, 0.6);
+  }
+  form.logout-form {
+    position: fixed;
+    top: 50px;
+    right: 15px;
+    z-index: 1000;
+  }
+  .main .container-fluid {
+    position: static;
+    min-height: 300px;
+    padding-bottom: 0;
+  }
+  .file-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    background: #fff;
+  }
+  .file-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    color: #333;
+    cursor: default;
+  }
+  .file-info i {
+    font-size: 28px;
+    color: #2196F3;
+  }
+  .file-actions button {
+    margin-left: 10px;
+  }
+  .upload-section {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  input[type="file"] {
+    max-width: 300px;
+  }
+  .modal {
+    max-width: 400px;
+    border-radius: 8px;
+  }
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px;
+  }
+</style>
+</head>
+<body>
+<!-- Navbar -->
+<div class="navbar-fixed">
+  <nav class="nav-extended white">
+    <div class="nav-wrapper white">
+      <ul>
+        <li><a href="#!" class="title grey-text text-darken-1">My Drive</a></li>
+      </ul>
+      <div class="search-wrapper">
+        <i class="material-icons">search</i>
+        <input type="search" name="Search" placeholder="Search Drive" id="searchInput"/>
+      </div>
+      <ul class="right">
+        <li><a href="#!"><i class="material-icons grey-text text-darken-1">apps</i></a></li>
+        <li><a href="#!"><i class="material-icons grey-text text-darken-1">notifications</i></a></li>
+        <li><a href="#!"><img src="templates/minion.jpg" alt="profile pic" class="circle" style="width:40px; height:40px; object-fit:cover;"/></a></li>
+      </ul>
+    </div>
+    <div class="nav-wrapper nav-2">
+      <ul>
+        <li><a href="#!" class="waves-effect waves-light btn btn-flat white-text" id="newFolderBtn">New Folder</a></li>
+      </ul>
+      <ul class="right">
+        <li><a href="#!"><i class="material-icons grey-text text-darken-1">view_list</i></a></li>
+        <li><a href="#!"><i class="material-icons grey-text text-darken-1">info</i></a></li>
+        <li><a href="#!"><i class="material-icons grey-text text-darken-1">settings</i></a></li>
+      </ul>
+    </div>
+  </nav>
+</div>
+
+<!-- Sidebar -->
+<ul class="side-nav fixed floating transparant z-depth-0">
+  <li class="active"><a href="#"><i class="material-icons blue-text text-darken-1">dashboard</i>My Drive</a></li>
+  <li><a href="#"><i class="material-icons">devices</i>Computers</a></li>
+  <li><a href="#"><i class="material-icons">people</i>Shared with me</a></li>
+  <li><a href="#"><i class="material-icons">access_time</i>Recent</a></li>
+  <li><a href="#"><i class="material-icons">camera</i>Google Photos</a></li>
+  <li><a href="#"><i class="material-icons">star</i>Starred</a></li>
+  <li><a href="#"><i class="material-icons">delete</i>Trash</a></li>
+  <li><div class="divider"></div></li>
+  <li><a href="#"><i class="material-icons">cloud</i>Backup</a></li>
+  <li><div class="divider"></div></li>
+  <li><a href="#"><i class="material-icons">storage</i>Upgrade Storage</a></li>
+</ul>
+
+{% if session['username'] %}
+  <h5 class="center-align" style="margin-top: 20px;">
+    Welcome, {{ session['username'] }} 👋
+  </h5>
+{% endif %}
+
+<!-- Main Content -->
+<div class="main">
+  <div class="container-fluid">
+    <p class="subheader">My Files & Folders</p>
+
+    <div class="upload-section">
+      <input type="file" id="fileInput" multiple/>
+      <button class="btn waves-effect waves-light" id="uploadBtn">
+        Upload
+        <i class="material-icons right">cloud_upload</i>
+      </button>
+    </div>
+
+    <div id="filesList"></div>
+
+    <form action="/logout" method="POST" class="logout-form" onsubmit="return confirmLogout()">
+      <button type="submit" class="logout-btn">Logout</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modals (Alert, Rename, Delete) -->
+ <div id="newFolderModal" class="modal">
+  <div class="modal-content">
+    <h4>Create New Folder</h4>
+    <div class="input-field">
+      <input id="newFolderNameInput" type="text" />
+      <label for="newFolderNameInput">Folder Name</label>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button id="newFolderCancel" class="red-btn">Cancel</button>
+    <button id="newFolderCreate" class="blue-btn">Create</button>
+  </div>
+</div>
+
+<div id="alertModal" class="modal">
+  <div class="modal-content">
+    <h4 id="modalTitle">Alert</h4>
+    <p id="modalMessage">This is a message.</p>
+  </div>
+  <div class="modal-footer">
+    <button class="blue-btn" onclick="closeAlertModal()">OK</button>
+  </div>
+</div>
+
+<div id="renameModal" class="modal">
+  <div class="modal-content">
+    <h4>Rename File/Folder</h4>
+    <div class="input-field">
+      <input id="renameInput" type="text" />
+      <label for="renameInput">New name</label>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button id="renameCancel" class="red-btn">Cancel</button>
+    <button id="renameConfirm" class="blue-btn">Rename</button>
+  </div>
+</div>
+
+<div id="deleteModal" class="modal">
+  <div class="modal-content">
+    <h4>Confirm Delete</h4>
+    <p>Are you sure you want to delete this item?</p>
+  </div>
+  <div class="modal-footer">
+    <button id="deleteCancel" class="blue-btn">Cancel</button>
+    <button id="deleteConfirm" class="red-btn">Delete</button>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script>
+  let renameModalInstance, deleteModalInstance, alertModalInstance;
+  document.addEventListener('DOMContentLoaded', function() {
+    const modals = document.querySelectorAll('.modal');
+    M.Modal.init(modals);
+
+    renameModalInstance = M.Modal.getInstance(document.getElementById('renameModal'));
+    deleteModalInstance = M.Modal.getInstance(document.getElementById('deleteModal'));
+    alertModalInstance = M.Modal.getInstance(document.getElementById('alertModal'));
+  });
+
+  function showAlert(title, message) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalMessage').textContent = message;
+    alertModalInstance.open();
+  }
+  function closeAlertModal() {
+    alertModalInstance.close();
+  }
+
+  function confirmLogout() {
+    return confirm("Are you sure you want to logout?");
+  }
+
+  let filesData = [];
+  function generateId() {
+    return '_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  let currentEditId = null;
+  let currentDeleteId = null;
+
+  function renderFiles() {
+    const container = document.getElementById('filesList');
+    container.innerHTML = '';
+    filesData.forEach((item) => {
+      const div = document.createElement('div');
+      div.classList.add('file-card');
+      const iconName = item.type === 'folder' ? 'folder' : 'insert_drive_file';
+      const fileInfo = document.createElement('div');
+      fileInfo.classList.add('file-info');
+      fileInfo.innerHTML = `<i class="material-icons">${iconName}</i><span>${item.name}</span>`;
+      const actionsDiv = document.createElement('div');
+      actionsDiv.classList.add('file-actions');
+      const editBtn = document.createElement('button');
+      editBtn.className = 'blue-btn';
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = () => editFile(item.id);
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'red-btn';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.onclick = () => deleteFile(item.id);
+      actionsDiv.appendChild(editBtn);
+      actionsDiv.appendChild(deleteBtn);
+      div.appendChild(fileInfo);
+      div.appendChild(actionsDiv);
+      container.appendChild(div);
+    });
+  }
+
+  document.getElementById('uploadBtn').addEventListener('click', () => {
+    const input = document.getElementById('fileInput');
+    const files = input.files;
+    if (!files.length) {
+      showAlert('No File Selected', 'Please select file(s) to upload.');
+      return;
+    }
+    for (let i = 0; i < files.length; i++) {
+      filesData.push({
+        id: generateId(),
+        name: files[i].name,
+        type: 'file'
+      });
+    }
+    input.value = '';
+    renderFiles();
+    showAlert('Upload Successful', 'File(s) uploaded successfully.');
+  });
+
+  function editFile(id) {
+    currentEditId = id;
+    const item = filesData.find(f => f.id === id);
+    if (!item) return;
+    const renameInput = document.getElementById('renameInput');
+    renameInput.value = item.name;
+    M.updateTextFields();
+    renameModalInstance.open();
+  }
+
+  document.getElementById('renameConfirm').addEventListener('click', () => {
+    const newName = document.getElementById('renameInput').value.trim();
+    if (newName === '') {
+      showAlert('Invalid Name', 'Name cannot be empty.');
+      return;
+    }
+    if (currentEditId) {
+      const item = filesData.find(f => f.id === currentEditId);
+      if (item) {
+        item.name = newName;
+        renderFiles();
+        showAlert('File Renamed', 'File renamed successfully.');
+      }
+    }
+    renameModalInstance.close();
+    currentEditId = null;
+  });
+
+  document.getElementById('renameCancel').addEventListener('click', () => {
+    renameModalInstance.close();
+    currentEditId = null;
+  });
+
+  function deleteFile(id) {
+    currentDeleteId = id;
+    deleteModalInstance.open();
+  }
+
+  document.getElementById('deleteConfirm').addEventListener('click', () => {
+    if (currentDeleteId) {
+      filesData = filesData.filter(f => f.id !== currentDeleteId);
+      renderFiles();
+      showAlert('Deleted', 'Item deleted successfully.');
+    }
+    deleteModalInstance.close();
+    currentDeleteId = null;
+  });
+
+  document.getElementById('deleteCancel').addEventListener('click', () => {
+    deleteModalInstance.close();
+    currentDeleteId = null;
+  });
+
+  // Modified only here: alert message for new folder creation
+  const newFolderModalElem = document.getElementById('newFolderModal');
+const newFolderModalInstance = M.Modal.init(newFolderModalElem);
+
+document.getElementById('newFolderBtn').addEventListener('click', () => {
+  document.getElementById('newFolderNameInput').value = '';
+  M.updateTextFields();  // To reset label position
+  newFolderModalInstance.open();
+});
+
+document.getElementById('newFolderCreate').addEventListener('click', () => {
+  const folderName = document.getElementById('newFolderNameInput').value.trim();
+  if (!folderName) {
+    showAlert('No Name Entered', 'Folder name cannot be empty.');
+    return;
+  }
+  filesData.push({
+    id: generateId(),
+    name: folderName,
+    type: 'folder'
+  });
+  renderFiles();
+  showAlert('Success 🎉', `Folder "${folderName}" has been created successfully!`);
+  newFolderModalInstance.close();
+});
+
+document.getElementById('newFolderCancel').addEventListener('click', () => {
+  newFolderModalInstance.close();
+});
+
+
+  document.getElementById('searchInput').addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filtered = filesData.filter(item => item.name.toLowerCase().includes(searchTerm));
+    const container = document.getElementById('filesList');
+    container.innerHTML = '';
+    filtered.forEach((item) => {
+      const div = document.createElement('div');
+      div.classList.add('file-card');
+      const iconName = item.type === 'folder' ? 'folder' : 'insert_drive_file';
+      const fileInfo = document.createElement('div');
+      fileInfo.classList.add('file-info');
+      fileInfo.innerHTML = `<i class="material-icons">${iconName}</i><span>${item.name}</span>`;
+      const actionsDiv = document.createElement('div');
+      actionsDiv.classList.add('file-actions');
+      const editBtn = document.createElement('button');
+      editBtn.className = 'blue-btn';
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = () => editFile(item.id);
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'red-btn';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.onclick = () => deleteFile(item.id);
+      actionsDiv.appendChild(editBtn);
+      actionsDiv.appendChild(deleteBtn);
+      div.appendChild(fileInfo);
+      div.appendChild(actionsDiv);
+      container.appendChild(div);
+    });
+  });
+
+  // Initialize with sample data
+  filesData = [
+    { id: generateId(), name: 'Documents', type: 'folder' },
+    { id: generateId(), name: 'Photos', type: 'folder' },
+    { id: generateId(), name: 'Project.pdf', type: 'file' }
+  ];
+  renderFiles();
+</script>
+</body>
+</html>
+  

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Intruder Detection</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <h1>Intruder Detection System</h1>
+    {% if session['user'] %}
+      <p class="user-greeting">Welcome, {{ session['user'] }}!</p>
+    {% endif %}
+    <a href="/logout" class="login-link">Logout</a>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-container">
+    <h2 class="main-heading">Dashboard for {{ session['user'] }}</h2>
+
+    <!-- Detection Section -->
+    <div class="button-stack">
+      <button class="start-detection-btn" onclick="startDetection()">Start Detection</button>
+    </div>
+
+    <!-- Face Management Section -->
+    <div class="face-management">
+      <h3>Face Management</h3>
+      <input type="text" id="username" placeholder="Enter New User Name" />
+
+      <div class="face-buttons">
+        <button onclick="registerFace()">Register Face</button>
+        <button onclick="trainModel()">Train Model</button>
+      </div>
+    </div>
+
+    <!-- Expandable Section -->
+    <div class="arrow-down" id="arrowDown">&#x25BC;</div>
+    <div class="register-extra" id="registerExtra">
+      <div class="extra-buttons">
+        <button class="extra-btn">Authorized Face</button>
+        <button class="extra-btn">Train Model Face</button>
+      </div>
+    </div>
+
+    <!-- Logs info section -->
+    <div class="log-info">
+      <p>Below are the logs of detected <strong>INTRUDERS</strong>:</p>
+      <!-- Changed from button with JS fetch to a simple link to logs page -->
+      <a href="{{ url_for('logs_page') }}" class="view-logs-link">View Logs</a>
+      <div id="logs-output" style="margin-top: 1rem;"></div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Intruder Detection System</p>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    function startDetection() {
+      fetch('/start-detection')
+        .then(res => res.text())
+        .then(msg => alert(msg));
+    }
+
+    function registerFace() {
+      const username = document.getElementById('username').value;
+      if (!username) {
+        alert("Please enter a user name.");
+        return;
+      }
+      fetch(`/register-face?username=${encodeURIComponent(username)}`)
+        .then(res => res.text())
+        .then(msg => alert(msg));
+    }
+
+    function trainModel() {
+      fetch('/train-model')
+        .then(res => res.text())
+        .then(msg => alert(msg));
+    }
+
+    // Toggle dropdown for extra register options
+    document.addEventListener('DOMContentLoaded', () => {
+      const arrow = document.getElementById("arrowDown");
+      const extraSection = document.getElementById("registerExtra");
+
+      if (arrow && extraSection) {
+        arrow.addEventListener("click", () => {
+          extraSection.classList.toggle("show");
+        });
+      }
+    });
+  </script>
+
+</body>
+</html>

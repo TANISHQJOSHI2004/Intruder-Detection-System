@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Intruder Logs</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { margin-bottom: 20px; }
+    .logs-container { display: flex; flex-wrap: wrap; gap: 20px; }
+    .log-item { border: 1px solid #ccc; padding: 10px; width: 200px; }
+    .log-item img, .log-item video {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .log-item a {
+      display: inline-block;
+      margin-right: 10px;
+      color: blue;
+      text-decoration: none;
+    }
+    .log-item a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Intruder Detection Logs</h1>
+  <a href="{{ url_for('index') }}">&#8592; Back to Dashboard</a>
+  
+  <section>
+    <h2>Intruder Images</h2>
+    <div id="imagesContainer" class="logs-container">
+      <!-- Images will be injected here -->
+    </div>
+  </section>
+
+  <section>
+    <h2>Screen Recordings</h2>
+    <div id="recordingsContainer" class="logs-container">
+      <!-- Videos will be injected here -->
+    </div>
+  </section>
+
+  <script>
+    fetch('/logs')
+      .then(res => res.json())
+      .then(data => {
+        const imagesContainer = document.getElementById('imagesContainer');
+        const recordingsContainer = document.getElementById('recordingsContainer');
+
+        if (data.images && data.images.length > 0) {
+          data.images.forEach(([filename, timestamp]) => {
+            const displayName = filename.split('/').pop();
+            const div = document.createElement('div');
+            div.className = 'log-item';
+
+            const img = document.createElement('img');
+            img.src = `/view/images/${encodeURIComponent(filename)}`;
+            img.alt = displayName;
+
+            const info = document.createElement('p');
+            info.textContent = `${timestamp} - ${displayName}`;
+
+            const viewLink = document.createElement('a');
+            viewLink.href = `/view/images/${encodeURIComponent(filename)}`;
+            viewLink.target = "_blank";
+            viewLink.textContent = "View";
+
+            const downloadLink = document.createElement('a');
+            downloadLink.href = `/download/images/${encodeURIComponent(filename)}`;
+            downloadLink.textContent = "Download";
+
+            div.appendChild(img);
+            div.appendChild(info);
+            div.appendChild(viewLink);
+            div.appendChild(downloadLink);
+            imagesContainer.appendChild(div);
+          });
+        } else {
+          imagesContainer.textContent = "No intruder images found.";
+        }
+
+        if (data.recordings && data.recordings.length > 0) {
+          data.recordings.forEach(([filename, timestamp]) => {
+            const displayName = filename.split('/').pop();
+            const div = document.createElement('div');
+            div.className = 'log-item';
+
+            const video = document.createElement('video');
+            video.src = `/view/recordings/${encodeURIComponent(filename)}`;
+            video.controls = true;
+            video.width = 200;
+
+            const info = document.createElement('p');
+            info.textContent = `${timestamp} - ${displayName}`;
+
+            const viewLink = document.createElement('a');
+            viewLink.href = `/view/recordings/${encodeURIComponent(filename)}`;
+            viewLink.target = "_blank";
+            viewLink.textContent = "View";
+
+            const downloadLink = document.createElement('a');
+            downloadLink.href = `/download/recordings/${encodeURIComponent(filename)}`;
+            downloadLink.textContent = "Download";
+
+            div.appendChild(video);
+            div.appendChild(info);
+            div.appendChild(viewLink);
+            div.appendChild(downloadLink);
+            recordingsContainer.appendChild(div);
+          });
+        } else {
+          recordingsContainer.textContent = "No screen recordings found.";
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        document.body.innerHTML += '<p>Error loading logs. Please try again later.</p>';
+      });
+  </script>
+</body>
+</html>
